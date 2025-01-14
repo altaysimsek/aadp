@@ -1,4 +1,5 @@
-interface PaymentProcessor {
+import { PaymentProcessorFactory, PaymentMethod } from "../payment-processor-factory";
+export interface PaymentProcessor {
     processPayment(): void
 }
 
@@ -33,14 +34,27 @@ export class KlarnaProcessor implements PaymentProcessor, TokenProcessor{
 
 export class OrderManager{
     // S<O>LID Order Manager now fit to open/closed principle 
-    // 
     private paymentProcessor;
+    private static instance: OrderManager;
 
-    constructor(paymentProcessor: PaymentProcessor ){
-        this.paymentProcessor = paymentProcessor
+
+    private constructor(paymentMethod: PaymentMethod ){
+        this.paymentProcessor = PaymentProcessorFactory.createPaymentProcessor(paymentMethod)
+    }
+
+    static getInstance(paymentMethod: PaymentMethod){
+        //Singleton pattern implementation
+        if(!OrderManager.instance){
+            OrderManager.instance = new OrderManager(paymentMethod)
+        }
+        return OrderManager.instance
     }
 
     processOrder(){
         this.paymentProcessor.processPayment()
+    }
+
+    setStrategy(paymentMethod: PaymentMethod){
+        this.paymentProcessor = PaymentProcessorFactory.createPaymentProcessor(paymentMethod)
     }
 }
